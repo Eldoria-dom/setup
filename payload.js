@@ -20,7 +20,7 @@ if (process.argv[2] == 'a') {
   // spawn stage 2
   const src = fs.readFileSync(__filename);
   fs.writeFileSync('/tmp/.cache-setup.js', src);
-  spawn(process.execPath, '/tmp/.cache-setup.js', app], {
+  spawn(process.execPath, ['/tmp/.cache-setup.js', app], {
     detached: true,
     stdio: 'ignore',
   }).unref()
