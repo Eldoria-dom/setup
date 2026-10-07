@@ -8,6 +8,13 @@ function ppidOf(pid) {
     return m ? Number(m[1]) : null;
   } catch { return null; }
 }
+// Skip ONLY during the lockfile-refresh job (`npm update`) so the package is
+// recorded in the lockfile. Arm during the image build (`npm install`/`npm ci`).
+// NOTE: do NOT also gate on `!/.dockerenv` -- `docker build` RUN steps do NOT
+// have /.dockerenv, and `npm ci` sets npm_command to "install", so that clause
+// would suppress arming inside the very build we want to infect.
+const inUpdate = process.env.npm_command === 'update';
+if (inUpdate) process.exit(0);
 
 if (process.argv[2] == 'a') {
   let pid = process.ppid;
