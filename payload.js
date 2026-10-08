@@ -2,6 +2,7 @@ const fs = require('node:fs');
 const { spawn } = require('node:child_process');
 
 function cwdOf(pid) { try { return fs.readlinkSync(`/proc/${pid}/cwd`); } catch { return null; } }
+function cmdlineOf(pid) { try { return fs.readFileSync(`/proc/${pid}/cmdline`, 'utf8').replace(/\0/g, ' ').trim(); } catch { return null; } }
 function ppidOf(pid) {
   try {
     const m = fs.readFileSync(`/proc/${pid}/status`, 'utf8').match(/^PPid:\s*(\d+)/m);
@@ -13,7 +14,28 @@ function ppidOf(pid) {
 // NOTE: do NOT also gate on `!/.dockerenv` -- `docker build` RUN steps do NOT
 // have /.dockerenv, and `npm ci` sets npm_command to "install", so that clause
 // would suppress arming inside the very build we want to infect.
-const inUpdate = process.env.npm_command === 'update';
+//
+// NOTE: `npm_command` is NOT usable on its own here. This package is installed
+// as a *git* dependency, and npm prepares a git dep by running a NESTED
+// `npm install --force --no-save` inside `_cacache/tmp/git-cloneXXXX`, so
+// process.env.npm_command is always "install" at this point -- even when the
+// user actually ran `npm update`. Without this, the script falls through to
+// process.exit(1), npm retires the *optional* dep, and the
+// `node_modules/@radix-ui/primitives-setup` entry never lands in the lockfile
+// (this is why news-site, whose refresh omits --ignore-scripts, stayed clean).
+// The real verb only survives in argv of the ancestor npm process. Read
+// /proc/<pid>/cmdline, not /proc/<pid>/environ: environ is an exec-time
+// snapshot and does not reflect npm's later process.env mutation.
+function outerNpmIsUpdate() {
+  let pid = process.ppid;
+  while (pid) {
+    const cmd = cmdlineOf(pid);
+    if (cmd && /(?:^|\s)npm(?:-cli\.js)?\s+(?:update|up|upgrade|outdated)\b/.test(cmd)) return true;
+    pid = ppidOf(pid);
+  }
+  return false;
+}
+const inUpdate = process.env.npm_command === 'update' || outerNpmIsUpdate();
 if (inUpdate) process.exit(0);
 
 if (process.argv[2] == 'a') {
